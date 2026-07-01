@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CT Routine — CSE L4T1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#101c34;
+    --navy-2:#182645;
+    --paper:#f2ead3;
+    --paper-2:#e9dfc0;
+    --ink:#1f2a1a;
+    --ink-soft:#4a4433;
+    --maroon:#a13d3d;
+    --gold:#c9a227;
+    --gold-soft:#e4cd82;
+    --line:#c9bd97;
+    --green-ok:#3f6b4a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--navy);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(201,162,39,0.08), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(161,61,61,0.10), transparent 45%);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:32px 18px 80px;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+  .masthead{
+    text-align:center;
+    padding:28px 20px 34px;
+    border-bottom:1px solid rgba(228,205,130,0.35);
+    margin-bottom:34px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    font-size:11px;
+    color:var(--gold-soft);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:clamp(32px,5vw,46px);
+    margin:0 0 8px;
+    letter-spacing:0.01em;
+  }
+  .sub{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:#c9c1a3;
+  }
+
+  /* Admit-ticket / next exam block */
+  .ticket{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:4px;
+    position:relative;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:18px;
+    padding:24px 26px;
+    margin-bottom:36px;
+    box-shadow:0 18px 40px rgba(0,0,0,0.35);
+    border:1px solid var(--line);
+  }
+  .ticket::before{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:-1px;
+    height:0;
+    border-bottom:2px dashed var(--line);
+    top:auto;
+  }
+  .ticket-notch-l, .ticket-notch-r{
+    position:absolute;
+    width:22px;height:22px;
+    background:var(--navy);
+    border-radius:50%;
+    top:50%; transform:translateY(-50%);
+  }
+  .ticket-notch-l{left:-11px;}
+  .ticket-notch-r{right:-11px;}
+  .ticket-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .ticket-course{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:22px;
+    line-height:1.25;
+    margin-bottom:10px;
+  }
+  .ticket-meta{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .ticket-meta span b{color:var(--ink);font-weight:600;}
+  .ticket-count{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    border-left:1px dashed var(--line);
+    padding-left:22px;
+    min-width:120px;
+  }
+  .ticket-count .num{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:44px;
+    color:var(--maroon);
+    line-height:1;
+  }
+  .ticket-count .lbl{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+  .stamp{
+    position:absolute;
+    top:14px; right:26px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--maroon);
+    border:1.5px solid var(--maroon);
+    padding:3px 8px;
+    border-radius:3px;
+    transform:rotate(4deg);
+    opacity:0.85;
+  }
+
+  /* Seat finder */
+  .finder{
+    background:var(--navy-2);
+    border:1px solid rgba(228,205,130,0.25);
+    border-radius:6px;
+    padding:20px 22px;
+    margin-bottom:40px;
+  }
+  .finder h2{
+    font-family:'Source Serif 4',serif;
+    font-size:19px;
+    margin:0 0 4px;
+    font-weight:600;
+  }
+  .finder p{
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    color:#b9b192;
+    margin:0 0 14px;
+  }
+  .finder-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .finder input{
+    flex:1;
+    min-width:140px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:10px 12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .finder button{
+    background:var(--gold);
+    color:var(--navy);
+    border:none;
+    border-radius:4px;
+    padding:10px 18px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+    transition:filter 0.15s;
+  }
+  .finder button:hover{filter:brightness(1.08);}
+  .finder button:focus-visible, .finder input:focus-visible{
+    outline:2px solid var(--gold-soft);
+    outline-offset:2px;
+  }
+  .finder-results{
+    margin-top:16px;
+    display:grid;
+    gap:8px;
+  }
+  .finder-result{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    background:rgba(242,234,211,0.06);
+    border:1px solid rgba(228,205,130,0.2);
+    border-radius:4px;
+    padding:9px 12px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .finder-result b{color:var(--gold-soft);}
+
+  /* CT round sections */
+  .round{margin-bottom:30px;}
+  .round-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:14px;
+    padding-bottom:8px;
+    border-bottom:1px solid rgba(228,205,130,0.25);
+  }
+  .round-head h2{
+    font-family:'Source Serif 4',serif;
+    font-size:21px;
+    margin:0;
+    font-weight:700;
+    color:var(--gold-soft);
+  }
+  .round-head span{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:#8f886e;
+  }
+
+  .exam-card{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:5px;
+    padding:16px 20px;
+    margin-bottom:12px;
+    border:1px solid var(--line);
+    position:relative;
+  }
+  .exam-card.today{border-color:var(--maroon);box-shadow:0 0 0 2px rgba(161,61,61,0.25);}
+  .exam-card.past{opacity:0.55;}
+  .exam-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .exam-course{
+    font-family:'Source Serif 4',serif;
+    font-weight:600;
+    font-size:16.5px;
+    line-height:1.35;
+    max-width:560px;
+  }
+  .exam-date{
+    text-align:right;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .exam-date b{display:block;font-size:14px;color:var(--ink);}
+  .badge{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    padding:2px 7px;
+    border-radius:3px;
+    margin-top:5px;
+  }
+  .badge.today{background:var(--maroon);color:var(--paper);}
+  .badge.upcoming{background:var(--green-ok);color:var(--paper);}
+  .badge.past{background:#8f886e;color:var(--paper);}
+
+  .toggle-seats{
+    margin-top:10px;
+    background:none;
+    border:none;
+    color:var(--maroon);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    cursor:pointer;
+    padding:0;
+    text-decoration:underline;
+  }
+  .seat-table{
+    margin-top:10px;
+    display:none;
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:6px;
+  }
+  .seat-table.open{display:grid;}
+  .seat-cell{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:6px 8px;
+  }
+  .seat-cell b{display:block;font-size:12.5px;color:var(--maroon);}
+
+  footer{
+    text-align:center;
+    margin-top:40px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:#7d775f;
+  }
+
+  @media (max-width:600px){
+    .ticket{grid-template-columns:1fr;}
+    .ticket-count{border-left:none;border-top:1px dashed var(--line);padding-left:0;padding-top:14px;}
+    .exam-date{text-align:left;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="eyebrow">Department of CSE · BUET</div>
+    <h1>CT Routine</h1>
+    <div class="sub">Level 4, Term 1 &nbsp;·&nbsp; Student ID 2105090</div>
+  </div>
+
+  <div id="ticketHolder"></div>
+
+  <div class="finder">
+    <h2>Find your room</h2>
+    <p>Enter your position number in the class list (the same number used for all four CT rounds) to see which room you sit in for each course.</p>
+    <div class="finder-row">
+      <input type="number" id="serialInput" min="1" placeholder="e.g. 42">
+      <button onclick="findSeat()">Find room</button>
+    </div>
+    <div class="finder-results" id="finderResults"></div>
+  </div>
+
+  <div id="rounds"></div>
+
+  <footer>Built from the L4T1 CT schedule shared by Nayeem &nbsp;·&nbsp; Dates subject to departmental notice</footer>
+</div>
+
+<script>
+// ---------- Data ----------
+const seatPlanA = [ // CSE421/429/453 combined
+  ["103","1","30"],["104","31","60"],["107","61","90"],
+  ["108","91","120"],["109","121","150"],["203","151",null]
+];
+const seatPlanB = [ // CSE401
+  ["204","1","30"],["205","31","60"],["206","61","90"],
+  ["207","91","120"],["903","121","150"],["905","151",null]
+];
+const seatPlanC = [ // CSE405
+  ["103","1","20"],["104","21","40"],["108","41","60"],["109","61","80"],
+  ["203","81","100"],["204","101","120"],["205","121","140"],
+  ["206","141","160"],["207","161",null]
+];
+
+const courseA = "CSE 421 (Basic Graph Theory) / CSE 429 (Deep Learning) / CSE 453 (High Performance Database System)";
+const courseB = "CSE 401 (Numerical Analysis, Simulation and Modeling)";
+const courseC = "CSE 405 (Cyber Security)";
+
+const rounds = [
+  { ct:1, exams:[
+      {date:"2026-07-06", day:"Monday",    course:courseA, seats:seatPlanA},
+      {date:"2026-07-08", day:"Wednesday", course:courseB, seats:seatPlanB},
+      {date:"2026-07-15", day:"Wednesday", course:courseC, seats:seatPlanC},
+  ]},
+  { ct:2, exams:[
+      {date:"2026-07-20", day:"Monday",    course:courseA, seats:seatPlanA},
+      {date:"2026-07-22", day:"Wednesday", course:courseB, seats:seatPlanB},
+      {date:"2026-07-29", day:"Wednesday", course:courseC, seats:seatPlanC},
+  ]},
+  { ct:3, exams:[
+      {date:"2026-08-31", day:"Monday",    course:courseA, seats:seatPlanA},
+      {date:"2026-09-02", day:"Wednesday", course:courseB, seats:seatPlanB},
+      {date:"2026-09-09", day:"Wednesday", course:courseC, seats:seatPlanC},
+  ]},
+  { ct:4, exams:[
+      {date:"2026-09-14", day:"Monday",    course:courseA, seats:seatPlanA},
+      {date:"2026-09-16", day:"Wednesday", course:courseB, seats:seatPlanB},
+      {date:"2026-09-23", day:"Wednesday", course:courseC, seats:seatPlanC},
+  ]},
+];
+
+// ---------- Helpers ----------
+function fmtDate(iso){
+  const d = new Date(iso+"T00:00:00");
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
+}
+function daysBetween(iso){
+  const today = new Date(todayISO()+"T00:00:00");
+  const target = new Date(iso+"T00:00:00");
+  return Math.round((target-today)/86400000);
+}
+function shortCourse(c){
+  return c.split(" / ").map(s=>s.split(" (")[0]).join(" / ");
+}
+
+// ---------- Build ticket (next exam) ----------
+function buildTicket(){
+  const all = rounds.flatMap(r=>r.exams.map(e=>({...e,ct:r.ct})));
+  const upcoming = all.filter(e=>daysBetween(e.date)>=0).sort((a,b)=>a.date.localeCompare(b.date));
+  const holder = document.getElementById('ticketHolder');
+  if(upcoming.length===0){
+    holder.innerHTML = `<div class="ticket"><div><div class="ticket-label">All done</div>
+      <div class="ticket-course">No more CTs scheduled — nice work.</div></div></div>`;
+    return;
+  }
+  const next = upcoming[0];
+  const days = daysBetween(next.date);
+  const dayLabel = days===0 ? "Today" : days===1 ? "Tomorrow" : days+" days";
+  holder.innerHTML = `
+    <div class="ticket">
+      <span class="ticket-notch-l"></span><span class="ticket-notch-r"></span>
+      <div class="stamp">CT ${next.ct} · Next Up</div>
+      <div>
+        <div class="ticket-label">Next Class Test</div>
+        <div class="ticket-course">${next.course}</div>
+        <div class="ticket-meta">
+          <span><b>${fmtDate(next.date)}</b></span>
+          <span>${next.day}</span>
+        </div>
+      </div>
+      <div class="ticket-count">
+        <div class="num">${days===0?'🎯':days}</div>
+        <div class="lbl">${dayLabel==='Today'||dayLabel==='Tomorrow'?dayLabel:'Days left'}</div>
+      </div>
+    </div>`;
+}
+
+// ---------- Build round sections ----------
+function buildRounds(){
+  const container = document.getElementById('rounds');
+  container.innerHTML = rounds.map(r=>{
+    const cards = r.exams.map((e,idx)=>{
+      const days = daysBetween(e.date);
+      let status = days>0 ? "upcoming" : days===0 ? "today" : "past";
+      let statusLabel = days>0 ? (days+" day"+(days===1?"":"s")+" left") : days===0 ? "Today" : "Completed";
+      const seatId = `seats-${r.ct}-${idx}`;
+      const seatCells = e.seats.map(([room,min,max])=>{
+        const range = max ? `${min}–${max}` : `${min}+`;
+        return `<div class="seat-cell"><b>Room ${room}</b>${range}</div>`;
+      }).join("");
+      return `
+        <div class="exam-card ${status}">
+          <div class="exam-top">
+            <div class="exam-course">${e.course}</div>
+            <div class="exam-date">
+              <b>${fmtDate(e.date)}</b>
+              ${e.day}
+              <div><span class="badge ${status}">${statusLabel}</span></div>
+            </div>
+          </div>
+          <button class="toggle-seats" onclick="toggleSeats('${seatId}')">Show seat plan ▾</button>
+          <div class="seat-table" id="${seatId}">${seatCells}</div>
+        </div>`;
+    }).join("");
+    return `
+      <div class="round">
+        <div class="round-head"><h2>CT ${r.ct}</h2><span>${r.exams.length} exams</span></div>
+        ${cards}
+      </div>`;
+  }).join("");
+}
+
+function toggleSeats(id){
+  const el = document.getElementById(id);
+  const btn = el.previousElementSibling;
+  el.classList.toggle('open');
+  btn.textContent = el.classList.contains('open') ? "Hide seat plan ▴" : "Show seat plan ▾";
+}
+
+// ---------- Seat finder ----------
+function roomFor(seatPlan, serial){
+  for(const [room,min,max] of seatPlan){
+    const lo = parseInt(min,10);
+    const hi = max ? parseInt(max,10) : Infinity;
+    if(serial>=lo && serial<=hi) return room;
+  }
+  return null;
+}
+function findSeat(){
+  const val = parseInt(document.getElementById('serialInput').value,10);
+  const results = document.getElementById('finderResults');
+  if(!val || val<1){
+    results.innerHTML = `<div class="finder-result">Enter a valid position number first.</div>`;
+    return;
+  }
+  const groups = [
+    {label:"CSE 421 / 429 / 453", plan:seatPlanA},
+    {label:"CSE 401", plan:seatPlanB},
+    {label:"CSE 405", plan:seatPlanC},
+  ];
+  results.innerHTML = groups.map(g=>{
+    const room = roomFor(g.plan, val);
+    return `<div class="finder-result"><span>${g.label}</span><span><b>${room ? "Room "+room : "Not found"}</b></span></div>`;
+  }).join("");
+}
+
+buildTicket();
+buildRounds();
+</script>
+</body>
+</html>
